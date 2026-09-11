@@ -17,6 +17,21 @@ export type AppTabsParamList = {
 
 const Tab = createBottomTabNavigator<AppTabsParamList>();
 
+interface TabIconProps {
+  focused: boolean;
+  icon: React.ComponentType<any>;
+}
+
+const TabIcon: React.FC<TabIconProps> = ({ focused, icon: Icon }) => (
+  <View style={[styles.tabIconWrapper, focused && styles.tabIconWrapperActive]}>
+    <Icon
+      color={focused ? '#000000' : colors.textMuted}
+      size={22}
+      strokeWidth={focused ? 2.5 : 1.8}
+    />
+  </View>
+);
+
 export const AppTabs = () => {
   return (
     <Tab.Navigator
@@ -34,8 +49,8 @@ export const AppTabs = () => {
         component={FeedScreen}
         options={{
           tabBarLabel: 'Bảng tin',
-          tabBarIcon: ({ color, focused }) => (
-            <Home color={color} size={22} strokeWidth={focused ? 2.5 : 1.8} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} icon={Home} />
           ),
         }}
       />
@@ -45,10 +60,8 @@ export const AppTabs = () => {
         component={SnapCameraScreen}
         options={{
           tabBarLabel: 'Snap',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={styles.centerSnapButton}>
-              <Camera color="#000000" size={24} strokeWidth={2.2} />
-            </View>
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} icon={Camera} />
           ),
         }}
       />
@@ -58,8 +71,8 @@ export const AppTabs = () => {
         component={ExpenseDashboardScreen}
         options={{
           tabBarLabel: 'Chi tiêu',
-          tabBarIcon: ({ color, focused }) => (
-            <Wallet color={color} size={22} strokeWidth={focused ? 2.5 : 1.8} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} icon={Wallet} />
           ),
         }}
       />
@@ -69,8 +82,8 @@ export const AppTabs = () => {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Cá nhân',
-          tabBarIcon: ({ color, focused }) => (
-            <User color={color} size={22} strokeWidth={focused ? 2.5 : 1.8} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} icon={User} />
           ),
         }}
       />
@@ -84,26 +97,27 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     borderTopWidth: 1,
     height: Platform.OS === 'ios' ? 88 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-    paddingTop: 8,
+    paddingBottom: Platform.OS === 'ios' ? 26 : 8,
+    paddingTop: 6,
   },
   tabLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
+    marginTop: 2,
   },
-  centerSnapButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.primary,
+  tabIconWrapper: {
+    width: 48,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -8,
+  },
+  tabIconWrapperActive: {
+    backgroundColor: colors.primary,
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });
-
