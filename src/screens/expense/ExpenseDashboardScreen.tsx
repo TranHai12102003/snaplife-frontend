@@ -137,7 +137,7 @@ export const ExpenseDashboardScreen = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Phân bổ theo danh mục</Text>
 
-            {summary?.Categories && summary.Categories.length > 0 ? (
+            {summary?.Categories && Array.isArray(summary.Categories) && summary.Categories.length > 0 ? (
               summary.Categories.map((cat, idx) => (
                 <View key={idx} style={styles.categoryItem}>
                   <View style={styles.categoryHeader}>
@@ -178,7 +178,7 @@ export const ExpenseDashboardScreen = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Lịch sử món ăn & Snap chi tiêu</Text>
 
-            {summary?.RecentExpenses && summary.RecentExpenses.length > 0 ? (
+            {summary?.RecentExpenses && Array.isArray(summary.RecentExpenses) && summary.RecentExpenses.length > 0 ? (
               summary.RecentExpenses.map((item, idx) => {
                 const thumb = item.ThumbnailUrl ? getFullMediaUrl(item.ThumbnailUrl) : null;
                 return (

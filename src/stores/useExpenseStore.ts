@@ -25,10 +25,11 @@ export const useExpenseStore = create<ExpenseState>((set) => ({
     set({ isLoadingCategories: true });
     try {
       const data = await expenseApi.getCategories();
-      set({ categories: data, isLoadingCategories: false });
+      const validCategories = Array.isArray(data) ? data : (data as any)?.Data || [];
+      set({ categories: validCategories, isLoadingCategories: false });
     } catch (error) {
       console.warn('Failed to fetch expense categories:', error);
-      set({ isLoadingCategories: false });
+      set({ categories: [], isLoadingCategories: false });
     }
   },
 

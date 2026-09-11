@@ -11,8 +11,12 @@ import { PaginationModel, ResponseResult } from '../types/common.types';
 
 export const expenseApi = {
   getCategories: async (): Promise<ExpenseCategoryVModel[]> => {
-    const response = await apiClient.get<ExpenseCategoryVModel[]>('/api/Expense/Categories');
-    return response.data;
+    const response = await apiClient.get<ResponseResult<ExpenseCategoryVModel[]>>('/api/Expense/Categories');
+    const data = response.data;
+    if (Array.isArray(data)) {
+      return data;
+    }
+    return data?.Data || [];
   },
 
   createCategory: async (data: ExpenseCategoryCreateRequest): Promise<ResponseResult> => {

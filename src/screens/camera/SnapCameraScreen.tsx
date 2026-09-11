@@ -46,10 +46,10 @@ export const SnapCameraScreen: React.FC<SnapCameraScreenProps> = ({ navigation }
 
   // Default select first category if available
   useEffect(() => {
-    if (categories.length > 0 && !selectedCategoryId) {
+    if (Array.isArray(categories) && categories.length > 0 && !selectedCategoryId) {
       setSelectedCategoryId(categories[0].Id);
     }
-  }, [categories]);
+  }, [categories, selectedCategoryId]);
 
   const takePhoto = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
@@ -225,21 +225,22 @@ export const SnapCameraScreen: React.FC<SnapCameraScreenProps> = ({ navigation }
                 {/* Categories */}
                 <Text style={styles.inputLabel}>Danh mục</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll}>
-                  {categories.map((cat) => {
-                    const isSelected = selectedCategoryId === cat.Id;
-                    return (
-                      <TouchableOpacity
-                        key={cat.Id}
-                        style={[styles.categoryPill, isSelected && styles.categoryPillSelected]}
-                        onPress={() => setSelectedCategoryId(cat.Id)}
-                      >
-                        <Text style={styles.categoryPillIcon}>{cat.Icon || '🏷️'}</Text>
-                        <Text style={[styles.categoryPillText, isSelected && styles.categoryPillTextSelected]}>
-                          {cat.Name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                  {Array.isArray(categories) &&
+                    categories.map((cat) => {
+                      const isSelected = selectedCategoryId === cat.Id;
+                      return (
+                        <TouchableOpacity
+                          key={cat.Id}
+                          style={[styles.categoryPill, isSelected && styles.categoryPillSelected]}
+                          onPress={() => setSelectedCategoryId(cat.Id)}
+                        >
+                          <Text style={styles.categoryPillIcon}>{cat.Icon || '🏷️'}</Text>
+                          <Text style={[styles.categoryPillText, isSelected && styles.categoryPillTextSelected]}>
+                            {cat.Name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                 </ScrollView>
               </View>
             )}
