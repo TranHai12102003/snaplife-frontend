@@ -1,18 +1,30 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-// In development:
-// - Web preview (Chrome/Edge): http://localhost:5000
-// - Android Emulator: http://10.0.2.2:5000
-// - Physical device (Expo Go on phone): http://10.20.206.114:5000 (Your local PC IP)
-const DEV_HOST = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
-// Bật dòng bên dưới nếu bạn test trực tiếp bằng điện thoại thật qua Expo Go:
-// const DEV_HOST = 'http://10.20.206.114:5000';
+const getDevHost = (): string => {
+  // 1. If running on Web browser (Chrome/Edge):
+  if (Platform.OS === 'web') {
+    return 'http://localhost:5000';
+  }
+
+  // 2. If running on Phone or Emulator via Expo Go:
+  // Constants.expoConfig.hostUri will automatically contain your PC's Wi-Fi IP (e.g., 192.168.1.68:8081)
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (hostUri) {
+    const ip = hostUri.split(':')[0];
+    return `http://${ip}:5000`;
+  }
+
+  // 3. Fallbacks:
+  // Android Emulator: 10.0.2.2
+  // Physical Device fallback: Current Wi-Fi IP
+  return Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://192.168.1.68:5000';
+};
 
 export const API_CONFIG = {
-  BASE_URL: DEV_HOST,
+  BASE_URL: getDevHost(),
   API_PREFIX: '/api',
   TIMEOUT_MS: 15000,
   TOKEN_KEY: 'snaplife_jwt_token',
   USER_INFO_KEY: 'snaplife_user_info',
 };
-
