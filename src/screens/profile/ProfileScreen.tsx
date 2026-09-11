@@ -7,10 +7,17 @@ import {
   ScrollView,
   Alert,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { LogOut, Settings, Users, Sparkles, Image as ImageIcon } from 'lucide-react-native';
+import {
+  LogOut,
+  Sparkles,
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react-native';
 import { colors } from '../../constants/colors';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { postApi } from '../../api/postApi';
@@ -18,7 +25,11 @@ import { PostDetailVModel } from '../../types/post.types';
 import { getFullMediaUrl } from '../../utils/formatters';
 
 const { width } = Dimensions.get('window');
-const GRID_ITEM_SIZE = (width - 48) / 3;
+// Padding ngoài scrollContent (16*2=32) + padding trong gridSection (16*2=32) + 2 khoảng gap giữa 3 ảnh (8*2=16) = 80px
+const HORIZONTAL_PADDING = 32 + 32;
+const GAP_SIZE = 8;
+const GRID_ITEM_SIZE = Math.floor((width - HORIZONTAL_PADDING - GAP_SIZE * 2) / 3);
+const PAGE_SIZE = 9; // Bố cục 3x3: tối đa 9 tấm ảnh / trang
 
 export const ProfileScreen = () => {
   const user = useAuthStore((state) => state.user);
@@ -26,20 +37,29 @@ export const ProfileScreen = () => {
   const refreshProfile = useAuthStore((state) => state.refreshProfile);
 
   const [myPosts, setMyPosts] = useState<PostDetailVModel[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+
+  const totalPages = Math.ceil(totalRecords / PAGE_SIZE) || 1;
 
   useEffect(() => {
     refreshProfile();
     if (user?.Id) {
-      loadMyPosts(user.Id);
+      loadMyPosts(user.Id, 1);
     }
   }, [user?.Id]);
 
-  const loadMyPosts = async (userId: string) => {
+  const loadMyPosts = async (userId: string, page: number = 1) => {
     setIsLoadingPosts(true);
     try {
-      const res = await postApi.getUserPosts(userId, { PageSize: 50 });
+      const res = await postApi.getUserPosts(userId, {
+        PageNumber: page,
+        PageSize: PAGE_SIZE,
+      });
       setMyPosts(res.Records || []);
+      setTotalRecords(res.TotalRecords || 0);
+      setCurrentPage(page);
     } catch (e) {
       console.warn('Failed to load user posts:', e);
     } finally {
@@ -89,7 +109,7 @@ export const ProfileScreen = () => {
           {/* Counts */}
           <View style={styles.statsCard}>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{myPosts.length}</Text>
+              <Text style={styles.statNumber}>{totalRecords}</Text>
               <Text style={styles.statLabel}>Snaps</Text>
             </View>
             <View style={styles.statDivider} />
@@ -105,37 +125,102 @@ export const ProfileScreen = () => {
           </View>
         </View>
 
-        {/* My Snaps Gallery Grid */}
+        {/* My Snaps Gallery Grid 3x3 */}
         <View style={styles.gridSection}>
           <View style={styles.gridHeader}>
-            <ImageIcon color={colors.primary} size={18} />
-            <Text style={styles.gridTitle}>Bộ sưu tập ảnh ({myPosts.length})</Text>
+            <View style={styles.gridTitleWrapper}>
+              <ImageIcon color={colors.primary} size={18} />
+              <Text style={styles.gridTitle}>Bộ sưu tập ảnh ({totalRecords})</Text>
+            </View>
+            {totalPages > 1 && (
+              <View style={styles.pageBadge}>
+                <Text style={styles.pageBadgeText}>
+                  Trang {currentPage}/{totalPages}
+                </Text>
+              </View>
+            )}
           </View>
 
-          {myPosts.length > 0 ? (
-            <View style={styles.grid}>
-              {myPosts.map((item) => {
-                const img = item.Medias?.[0]?.FileUrl
-                  ? getFullMediaUrl(item.Medias[0].FileUrl)
-                  : null;
-                return (
-                  <View key={item.Id} style={styles.gridItem}>
-                    {img ? (
-                      <Image source={{ uri: img }} style={styles.gridImage} />
-                    ) : (
-                      <View style={[styles.gridImage, styles.gridPlaceholder]}>
-                        <Sparkles color={colors.textSecondary} size={20} />
-                      </View>
-                    )}
-                    {item.IsExpense && (
-                      <View style={styles.gridExpenseBadge}>
-                        <Text style={styles.gridExpenseText}>💰</Text>
-                      </View>
-                    )}
-                  </View>
-                );
-              })}
+          {isLoadingPosts ? (
+            <View style={styles.loadingWrapper}>
+              <ActivityIndicator color={colors.primary} size="small" />
             </View>
+          ) : myPosts.length > 0 ? (
+            <>
+              <View style={styles.grid}>
+                {myPosts.map((item) => {
+                  const img = item.Medias?.[0]?.FileUrl
+                    ? getFullMediaUrl(item.Medias[0].FileUrl)
+                    : null;
+                  return (
+                    <View key={item.Id} style={styles.gridItem}>
+                      {img ? (
+                        <Image source={{ uri: img }} style={styles.gridImage} />
+                      ) : (
+                        <View style={[styles.gridImage, styles.gridPlaceholder]}>
+                          <Sparkles color={colors.textSecondary} size={20} />
+                        </View>
+                      )}
+                      {item.IsExpense && (
+                        <View style={styles.gridExpenseBadge}>
+                          <Text style={styles.gridExpenseText}>💰</Text>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <View style={styles.paginationRow}>
+                  <TouchableOpacity
+                    style={[styles.pageBtn, currentPage <= 1 && styles.pageBtnDisabled]}
+                    disabled={currentPage <= 1 || isLoadingPosts}
+                    onPress={() => user?.Id && loadMyPosts(user.Id, currentPage - 1)}
+                  >
+                    <ChevronLeft
+                      color={currentPage <= 1 ? colors.textMuted : colors.text}
+                      size={18}
+                    />
+                    <Text
+                      style={[
+                        styles.pageBtnText,
+                        currentPage <= 1 && styles.pageBtnTextDisabled,
+                      ]}
+                    >
+                      Trước
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Text style={styles.paginationIndicator}>
+                    {currentPage} / {totalPages}
+                  </Text>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.pageBtn,
+                      currentPage >= totalPages && styles.pageBtnDisabled,
+                    ]}
+                    disabled={currentPage >= totalPages || isLoadingPosts}
+                    onPress={() => user?.Id && loadMyPosts(user.Id, currentPage + 1)}
+                  >
+                    <Text
+                      style={[
+                        styles.pageBtnText,
+                        currentPage >= totalPages && styles.pageBtnTextDisabled,
+                      ]}
+                    >
+                      Sau
+                    </Text>
+                    <ChevronRight
+                      color={currentPage >= totalPages ? colors.textMuted : colors.text}
+                      size={18}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
           ) : (
             <View style={styles.emptyGrid}>
               <Text style={styles.emptyGridText}>Bạn chưa đăng khoảnh khắc nào.</Text>
@@ -255,7 +340,12 @@ const styles = StyleSheet.create({
   gridHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
+  },
+  gridTitleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   gridTitle: {
     color: colors.text,
@@ -263,10 +353,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginLeft: 8,
   },
+  pageBadge: {
+    backgroundColor: colors.surfaceLight,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  pageBadgeText: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  loadingWrapper: {
+    paddingVertical: 36,
+    alignItems: 'center',
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: GAP_SIZE,
   },
   gridItem: {
     width: GRID_ITEM_SIZE,
@@ -303,5 +410,40 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 13,
   },
+  paginationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 18,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  pageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceLight,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  pageBtnDisabled: {
+    opacity: 0.4,
+  },
+  pageBtnText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '600',
+    marginHorizontal: 4,
+  },
+  pageBtnTextDisabled: {
+    color: colors.textMuted,
+  },
+  paginationIndicator: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
 });
-
