@@ -154,6 +154,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    width: '100%',
+    maxWidth: 540,
+    alignSelf: 'center',
   },
   headerTitle: {
     fontSize: 22,
@@ -172,6 +175,9 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
     paddingBottom: 32,
+    width: '100%',
+    maxWidth: 540,
+    alignSelf: 'center',
   },
   emptyContainer: {
     alignItems: 'center',

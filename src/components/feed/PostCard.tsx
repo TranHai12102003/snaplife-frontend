@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MapPin, MessageCircle, Heart } from 'lucide-react-native';
@@ -17,9 +16,6 @@ interface PostCardProps {
   onReact: (postId: number, reactionType: ReactionType) => void;
   onCommentPress?: (postId: number) => void;
 }
-
-const { width } = Dimensions.get('window');
-const POST_IMAGE_SIZE = width - 32;
 
 const REACTION_EMOJIS: { type: ReactionType; emoji: string }[] = [
   { type: ReactionType.Like, emoji: '❤️' },
@@ -164,6 +160,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
+    width: '100%',
+    maxWidth: 540,
+    alignSelf: 'center',
   },
   header: {
     paddingHorizontal: 16,
@@ -221,7 +220,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: POST_IMAGE_SIZE,
+    aspectRatio: 1,
     position: 'relative',
     backgroundColor: '#000000',
   },

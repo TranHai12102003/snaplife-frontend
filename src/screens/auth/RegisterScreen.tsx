@@ -205,6 +205,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    width: '100%',
+    maxWidth: 460,
+    alignSelf: 'center',
   },
   backButton: {
     padding: 4,
@@ -216,6 +219,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
+    width: '100%',
+    maxWidth: 460,
+    alignSelf: 'center',
   },
   card: {
     backgroundColor: colors.surface,

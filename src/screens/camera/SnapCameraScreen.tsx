@@ -9,7 +9,6 @@ import {
   Switch,
   Alert,
   ActivityIndicator,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -20,9 +19,6 @@ import { Button } from '../../components/common/Button';
 import { mediaApi } from '../../api/mediaApi';
 import { postApi } from '../../api/postApi';
 import { useExpenseStore } from '../../stores/useExpenseStore';
-
-const { width } = Dimensions.get('window');
-const PREVIEW_SIZE = width - 32;
 
 interface SnapCameraScreenProps {
   navigation: any;
@@ -272,6 +268,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    width: '100%',
+    maxWidth: 540,
+    alignSelf: 'center',
   },
   headerTitle: {
     fontSize: 18,
@@ -284,9 +283,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+    width: '100%',
+    maxWidth: 540,
+    alignSelf: 'center',
   },
   pickerBox: {
-    height: PREVIEW_SIZE,
+    width: '100%',
+    aspectRatio: 1,
     backgroundColor: colors.surface,
     borderRadius: 24,
     borderWidth: 1.5,
@@ -341,8 +344,8 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   imagePreviewContainer: {
-    width: PREVIEW_SIZE,
-    height: PREVIEW_SIZE,
+    width: '100%',
+    aspectRatio: 1,
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,

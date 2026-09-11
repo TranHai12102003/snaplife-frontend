@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Dimensions,
+  useWindowDimensions,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,14 +24,16 @@ import { postApi } from '../../api/postApi';
 import { PostDetailVModel } from '../../types/post.types';
 import { getFullMediaUrl } from '../../utils/formatters';
 
-const { width } = Dimensions.get('window');
-// Padding ngoài scrollContent (16*2=32) + padding trong gridSection (16*2=32) + 2 khoảng gap giữa 3 ảnh (8*2=16) = 80px
-const HORIZONTAL_PADDING = 32 + 32;
-const GAP_SIZE = 8;
-const GRID_ITEM_SIZE = Math.floor((width - HORIZONTAL_PADDING - GAP_SIZE * 2) / 3);
 const PAGE_SIZE = 9; // Bố cục 3x3: tối đa 9 tấm ảnh / trang
+const GAP_SIZE = 8;
 
 export const ProfileScreen = () => {
+  const { width } = useWindowDimensions();
+  const contentWidth = Math.min(width, 540);
+  // Padding ngoài scrollContent (16*2=32) + padding trong gridSection (16*2=32) + 2 khoảng gap giữa 3 ảnh (8*2=16) = 80px
+  const HORIZONTAL_PADDING = 32 + 32;
+  const gridItemSize = Math.floor((contentWidth - HORIZONTAL_PADDING - GAP_SIZE * 2) / 3);
+
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const refreshProfile = useAuthStore((state) => state.refreshProfile);
@@ -153,7 +155,7 @@ export const ProfileScreen = () => {
                     ? getFullMediaUrl(item.Medias[0].FileUrl)
                     : null;
                   return (
-                    <View key={item.Id} style={styles.gridItem}>
+                    <View key={item.Id} style={[styles.gridItem, { width: gridItemSize, height: gridItemSize }]}>
                       {img ? (
                         <Image source={{ uri: img }} style={styles.gridImage} />
                       ) : (
@@ -245,6 +247,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    width: '100%',
+    maxWidth: 540,
+    alignSelf: 'center',
   },
   headerUsername: {
     fontSize: 18,
@@ -257,6 +262,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+    width: '100%',
+    maxWidth: 540,
+    alignSelf: 'center',
   },
   profileSection: {
     alignItems: 'center',
@@ -376,8 +384,6 @@ const styles = StyleSheet.create({
     gap: GAP_SIZE,
   },
   gridItem: {
-    width: GRID_ITEM_SIZE,
-    height: GRID_ITEM_SIZE,
     borderRadius: 14,
     overflow: 'hidden',
     position: 'relative',
@@ -447,3 +453,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+

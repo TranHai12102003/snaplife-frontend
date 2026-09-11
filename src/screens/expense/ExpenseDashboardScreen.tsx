@@ -227,6 +227,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    width: '100%',
+    maxWidth: 540,
+    alignSelf: 'center',
   },
   headerTitle: {
     fontSize: 22,
@@ -261,6 +264,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+    width: '100%',
+    maxWidth: 540,
+    alignSelf: 'center',
   },
   statsCard: {
     backgroundColor: colors.surface,
