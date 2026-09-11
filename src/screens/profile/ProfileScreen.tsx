@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  useWindowDimensions,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,12 +27,6 @@ const PAGE_SIZE = 9; // Bố cục 3x3: tối đa 9 tấm ảnh / trang
 const GAP_SIZE = 8;
 
 export const ProfileScreen = () => {
-  const { width } = useWindowDimensions();
-  const contentWidth = Math.min(width, 540);
-  // Padding ngoài scrollContent (16*2=32) + padding trong gridSection (16*2=32) + 2 khoảng gap giữa 3 ảnh (8*2=16) = 80px
-  const HORIZONTAL_PADDING = 32 + 32;
-  const gridItemSize = Math.floor((contentWidth - HORIZONTAL_PADDING - GAP_SIZE * 2) / 3);
-
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const refreshProfile = useAuthStore((state) => state.refreshProfile);
@@ -44,6 +37,12 @@ export const ProfileScreen = () => {
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE) || 1;
+
+  // Chia ảnh thành từng hàng đúng 3 cột để đảm bảo Flexbox luôn căn đều tuyệt đối
+  const rows: PostDetailVModel[][] = [];
+  for (let i = 0; i < myPosts.length; i += 3) {
+    rows.push(myPosts.slice(i, i + 3));
+  }
 
   useEffect(() => {
     refreshProfile();
@@ -150,27 +149,41 @@ export const ProfileScreen = () => {
           ) : myPosts.length > 0 ? (
             <>
               <View style={styles.grid}>
-                {myPosts.map((item) => {
-                  const img = item.Medias?.[0]?.FileUrl
-                    ? getFullMediaUrl(item.Medias[0].FileUrl)
-                    : null;
-                  return (
-                    <View key={item.Id} style={[styles.gridItem, { width: gridItemSize, height: gridItemSize }]}>
-                      {img ? (
-                        <Image source={{ uri: img }} style={styles.gridImage} />
-                      ) : (
-                        <View style={[styles.gridImage, styles.gridPlaceholder]}>
-                          <Sparkles color={colors.textSecondary} size={20} />
+                {rows.map((row, rowIndex) => (
+                  <View
+                    key={`row-${rowIndex}`}
+                    style={[
+                      styles.gridRow,
+                      rowIndex === rows.length - 1 && styles.gridRowLast,
+                    ]}
+                  >
+                    {row.map((item) => {
+                      const img = item.Medias?.[0]?.FileUrl
+                        ? getFullMediaUrl(item.Medias[0].FileUrl)
+                        : null;
+                      return (
+                        <View key={item.Id} style={styles.gridItem}>
+                          {img ? (
+                            <Image source={{ uri: img }} style={styles.gridImage} />
+                          ) : (
+                            <View style={[styles.gridImage, styles.gridPlaceholder]}>
+                              <Sparkles color={colors.textSecondary} size={20} />
+                            </View>
+                          )}
+                          {item.IsExpense && (
+                            <View style={styles.gridExpenseBadge}>
+                              <Text style={styles.gridExpenseText}>💰</Text>
+                            </View>
+                          )}
                         </View>
-                      )}
-                      {item.IsExpense && (
-                        <View style={styles.gridExpenseBadge}>
-                          <Text style={styles.gridExpenseText}>💰</Text>
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
+                      );
+                    })}
+                    {row.length < 3 &&
+                      Array.from({ length: 3 - row.length }).map((_, idx) => (
+                        <View key={`spacer-${idx}`} style={styles.gridSpacer} />
+                      ))}
+                  </View>
+                ))}
               </View>
 
               {/* Pagination Controls */}
@@ -379,15 +392,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   grid: {
+    width: '100%',
+  },
+  gridRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: GAP_SIZE,
+    marginBottom: GAP_SIZE,
+  },
+  gridRowLast: {
+    marginBottom: 0,
   },
   gridItem: {
+    flex: 1,
+    aspectRatio: 1,
     borderRadius: 14,
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: colors.surfaceLight,
+  },
+  gridSpacer: {
+    flex: 1,
   },
   gridImage: {
     width: '100%',
