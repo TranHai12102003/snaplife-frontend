@@ -4,7 +4,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { useAuthStore } from '../stores/useAuthStore';
 import { AuthNavigator } from './AuthNavigator';
 import { AppTabs } from './AppTabs';
-import { colors } from '../constants/colors';
+import { colors } from '../theme';
 
 const navTheme = {
   ...DarkTheme,

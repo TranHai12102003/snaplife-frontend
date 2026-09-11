@@ -80,6 +80,13 @@ SnapLife-Mobile/
 │   │   ├── useAuthStore.ts    # State đăng nhập, thông tin User, Token, Đăng xuất
 │   │   └── useExpenseStore.ts # State danh mục chi tiêu, tổng chi tiêu hàng tháng
 │   │
+│   ├── theme/               # Design System: Bảng màu, Khoảng cách, Typography, Styles dùng chung
+│   │   ├── colors.ts          # Bảng màu chủ đạo (Dark Theme, Primary Gold #FFC837, Surface, v.v.)
+│   │   ├── spacing.ts         # Hệ thống khoảng cách chuẩn (xs: 4 -> xxxl: 40)
+│   │   ├── typography.ts      # Định dạng font chuẩn (h1, h2, h3, subtitle, body, caption)
+│   │   ├── commonStyles.ts    # Các layout dùng chung (screenContainer, scrollContent, card, header, v.v.)
+│   │   └── index.ts           # Barrel export tiện lợi cho toàn app
+│   │
 │   ├── types/               # TypeScript Type Definitions khớp chuẩn Backend
 │   │   ├── auth.types.ts      # Models Login, Register, AuthResponse
 │   │   ├── user.types.ts      # User profile, Claims, Roles

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
-import { colors } from '../../constants/colors';
+import { colors, commonStyles, typography } from '../../theme';
 
 interface HeaderProps {
   title: string;
@@ -17,8 +17,8 @@ export const Header: React.FC<HeaderProps> = ({
   rightAction,
 }) => {
   return (
-    <View style={styles.container}>
-      <View style={styles.left}>
+    <View style={commonStyles.screenHeader}>
+      <View style={commonStyles.row}>
         {onBack && (
           <TouchableOpacity
             style={styles.backButton}
@@ -29,47 +29,20 @@ export const Header: React.FC<HeaderProps> = ({
           </TouchableOpacity>
         )}
         <View>
-          <Text style={styles.title}>{title}</Text>
-          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          <Text style={typography.h3}>{title}</Text>
+          {subtitle && <Text style={typography.caption}>{subtitle}</Text>}
         </View>
       </View>
 
-      {rightAction && <View style={styles.right}>{rightAction}</View>}
+      {rightAction && <View style={commonStyles.row}>{rightAction}</View>}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  left: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   backButton: {
     marginRight: 12,
     padding: 4,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-  right: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
 });
 

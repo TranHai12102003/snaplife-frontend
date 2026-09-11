@@ -17,7 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react-native';
-import { colors } from '../../constants/colors';
+import { colors, commonStyles, typography } from '../../theme';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { postApi } from '../../api/postApi';
 import { PostDetailVModel } from '../../types/post.types';
@@ -78,16 +78,16 @@ export const ProfileScreen = () => {
   const avatarUrl = user?.AvatarUrl ? getFullMediaUrl(user.AvatarUrl) : null;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
       {/* Top Bar */}
-      <View style={styles.header}>
-        <Text style={styles.headerUsername}>@{user?.UserName || 'snapuser'}</Text>
+      <View style={commonStyles.screenHeader}>
+        <Text style={typography.h3}>@{user?.UserName || 'snapuser'}</Text>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
           <LogOut color={colors.error} size={22} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={commonStyles.scrollContent}>
         {/* Profile Card */}
         <View style={styles.profileSection}>
           <View style={styles.avatarWrapper}>
@@ -127,15 +127,15 @@ export const ProfileScreen = () => {
         </View>
 
         {/* My Snaps Gallery Grid 3x3 */}
-        <View style={styles.gridSection}>
-          <View style={styles.gridHeader}>
-            <View style={styles.gridTitleWrapper}>
+        <View style={[commonStyles.card, styles.gridSection]}>
+          <View style={[commonStyles.rowBetween, { marginBottom: 16 }]}>
+            <View style={commonStyles.row}>
               <ImageIcon color={colors.primary} size={18} />
               <Text style={styles.gridTitle}>Bộ sưu tập ảnh ({totalRecords})</Text>
             </View>
             {totalPages > 1 && (
-              <View style={styles.pageBadge}>
-                <Text style={styles.pageBadgeText}>
+              <View style={commonStyles.pillBadge}>
+                <Text style={commonStyles.pillBadgeText}>
                   Trang {currentPage}/{totalPages}
                 </Text>
               </View>
@@ -248,36 +248,8 @@ export const ProfileScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    width: '100%',
-    maxWidth: 540,
-    alignSelf: 'center',
-  },
-  headerUsername: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.text,
-  },
   logoutBtn: {
     padding: 6,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-    width: '100%',
-    maxWidth: 540,
-    alignSelf: 'center',
   },
   profileSection: {
     alignItems: 'center',
@@ -352,40 +324,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   gridSection: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
     padding: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  gridHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  gridTitleWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   gridTitle: {
     color: colors.text,
     fontSize: 15,
     fontWeight: '700',
     marginLeft: 8,
-  },
-  pageBadge: {
-    backgroundColor: colors.surfaceLight,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  pageBadgeText: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: '700',
   },
   loadingWrapper: {
     paddingVertical: 36,

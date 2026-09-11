@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Camera, Wallet, User } from 'lucide-react-native';
-import { colors } from '../constants/colors';
+import { colors } from '../theme';
 import { FeedScreen } from '../screens/feed/FeedScreen';
 import { SnapCameraScreen } from '../screens/camera/SnapCameraScreen';
 import { ExpenseDashboardScreen } from '../screens/expense/ExpenseDashboardScreen';

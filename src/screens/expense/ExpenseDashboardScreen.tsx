@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Wallet, TrendingUp, Calendar, ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { colors } from '../../constants/colors';
+import { colors, commonStyles, typography } from '../../theme';
 import { expenseApi } from '../../api/expenseApi';
 import { ExpenseSummaryVModel, FoodCalendarDayVModel } from '../../types/expense.types';
 import { formatCurrency, formatDate, getFullMediaUrl } from '../../utils/formatters';
@@ -70,12 +70,12 @@ export const ExpenseDashboardScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
       {/* Header with Month Selector */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Chi tiêu thị giác</Text>
+        <Text style={[typography.h2, { marginBottom: 10 }]}>Chi tiêu thị giác</Text>
 
-        <View style={styles.monthSelector}>
+        <View style={[commonStyles.rowBetween, styles.monthSelector]}>
           <TouchableOpacity onPress={() => changeMonth(-1)} style={styles.arrowBtn}>
             <ChevronLeft color={colors.text} size={20} />
           </TouchableOpacity>
@@ -94,7 +94,7 @@ export const ExpenseDashboardScreen = () => {
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={commonStyles.scrollContent}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -105,8 +105,8 @@ export const ExpenseDashboardScreen = () => {
           }
         >
           {/* Main Stats Card */}
-          <View style={styles.statsCard}>
-            <View style={styles.statTopRow}>
+          <View style={[commonStyles.card, { marginBottom: 20 }]}>
+            <View style={[commonStyles.row, { marginBottom: 8 }]}>
               <View style={styles.statIconBadge}>
                 <Wallet color={colors.primary} size={24} />
               </View>
@@ -218,10 +218,6 @@ export const ExpenseDashboardScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   header: {
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -231,22 +227,13 @@ const styles = StyleSheet.create({
     maxWidth: 540,
     alignSelf: 'center',
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 10,
-  },
   monthSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.surface,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
   arrowBtn: {
     padding: 4,
@@ -260,26 +247,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-    width: '100%',
-    maxWidth: 540,
-    alignSelf: 'center',
-  },
-  statsCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 20,
-  },
-  statTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
   },
   statIconBadge: {
     width: 40,

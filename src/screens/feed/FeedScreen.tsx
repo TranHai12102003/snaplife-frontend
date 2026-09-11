@@ -13,7 +13,7 @@ import { Camera, Sparkles } from 'lucide-react-native';
 import { PostCard } from '../../components/feed/PostCard';
 import { postApi } from '../../api/postApi';
 import { PostDetailVModel, ReactionType } from '../../types/post.types';
-import { colors } from '../../constants/colors';
+import { colors, commonStyles, typography } from '../../theme';
 
 interface FeedScreenProps {
   navigation: any;
@@ -101,10 +101,10 @@ export const FeedScreen: React.FC<FeedScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
       {/* Top Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>SnapLife</Text>
+      <View style={commonStyles.screenHeader}>
+        <Text style={[typography.h2, styles.headerTitle]}>SnapLife</Text>
         <TouchableOpacity
           style={styles.headerActionBtn}
           onPress={() => navigation.navigate('CameraTab')}
@@ -125,7 +125,7 @@ export const FeedScreen: React.FC<FeedScreenProps> = ({ navigation }) => {
           renderItem={({ item }) => (
             <PostCard post={item} onReact={handleReact} />
           )}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={commonStyles.scrollContent}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -142,25 +142,7 @@ export const FeedScreen: React.FC<FeedScreenProps> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    width: '100%',
-    maxWidth: 540,
-    alignSelf: 'center',
-  },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
     color: colors.primary,
     letterSpacing: 0.5,
   },
@@ -171,13 +153,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  listContent: {
-    padding: 16,
-    paddingBottom: 32,
-    width: '100%',
-    maxWidth: 540,
-    alignSelf: 'center',
   },
   emptyContainer: {
     alignItems: 'center',

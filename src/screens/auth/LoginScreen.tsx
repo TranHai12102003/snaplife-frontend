@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Lock, Mail, Sparkles } from 'lucide-react-native';
-import { colors } from '../../constants/colors';
+import { colors, commonStyles, typography } from '../../theme';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { authApi } from '../../api/authApi';
@@ -61,13 +61,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={commonStyles.screenContainer}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardView}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={commonStyles.authScrollContent}
           keyboardShouldPersistTaps="handled"
         >
           {/* Logo & Header */}
@@ -75,17 +75,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <View style={styles.logoBadge}>
               <Sparkles color={colors.primary} size={32} />
             </View>
-            <Text style={styles.brandTitle}>SnapLife</Text>
-            <Text style={styles.tagline}>Khoảnh khắc bạn bè & Chi tiêu thị giác</Text>
+            <Text style={typography.h1}>SnapLife</Text>
+            <Text style={typography.subtitle}>Khoảnh khắc bạn bè & Chi tiêu thị giác</Text>
           </View>
 
           {/* Form */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Đăng nhập</Text>
+          <View style={commonStyles.card}>
+            <Text style={[typography.h3, styles.cardTitle]}>Đăng nhập</Text>
 
             {errorMessage ? (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorBannerText}>{errorMessage}</Text>
+              <View style={commonStyles.errorBanner}>
+                <Text style={commonStyles.errorBannerText}>{errorMessage}</Text>
               </View>
             ) : null}
 
@@ -122,7 +122,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               style={styles.loginButton}
             />
 
-            <View style={styles.footerRow}>
+            <View style={[commonStyles.row, styles.footerRow]}>
               <Text style={styles.footerText}>Chưa có tài khoản?</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.registerLink}> Đăng ký ngay</Text>
@@ -136,20 +136,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   keyboardView: {
     flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
-    width: '100%',
-    maxWidth: 460,
-    alignSelf: 'center',
   },
   header: {
     alignItems: 'center',
@@ -166,51 +154,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 16,
   },
-  brandTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: 0.5,
-  },
-  tagline: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
   cardTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
     marginBottom: 20,
-  },
-  errorBanner: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    borderWidth: 1,
-    borderColor: colors.error,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorBannerText: {
-    color: colors.error,
-    fontSize: 13,
-    lineHeight: 18,
   },
   loginButton: {
     marginTop: 8,
   },
   footerRow: {
-    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
     marginTop: 20,
   },
   footerText: {

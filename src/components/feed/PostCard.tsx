@@ -8,7 +8,7 @@ import {
 import { Image } from 'expo-image';
 import { MapPin, MessageCircle, Heart } from 'lucide-react-native';
 import { PostDetailVModel, ReactionType } from '../../types/post.types';
-import { colors } from '../../constants/colors';
+import { colors, commonStyles, typography } from '../../theme';
 import { formatCurrency, formatRelativeTime, getFullMediaUrl } from '../../utils/formatters';
 
 interface PostCardProps {
@@ -32,7 +32,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onReact, onCommentPres
   const authorAvatar = post.Author?.AvatarUrl ? getFullMediaUrl(post.Author.AvatarUrl) : null;
 
   return (
-    <View style={styles.card}>
+    <View style={[commonStyles.card, styles.card]}>
       {/* Header: Author & Timestamp */}
       <View style={styles.header}>
         <View style={styles.authorRow}>
@@ -154,15 +154,9 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onReact, onCommentPres
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
     overflow: 'hidden',
-    width: '100%',
-    maxWidth: 540,
-    alignSelf: 'center',
+    padding: 0,
   },
   header: {
     paddingHorizontal: 16,

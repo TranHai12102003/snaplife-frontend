@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Image as ImageIcon, Check, X, Sparkles } from 'lucide-react-native';
-import { colors } from '../../constants/colors';
+import { colors, commonStyles, typography } from '../../theme';
 import { Button } from '../../components/common/Button';
 import { mediaApi } from '../../api/mediaApi';
 import { postApi } from '../../api/postApi';
@@ -129,10 +129,10 @@ export const SnapCameraScreen: React.FC<SnapCameraScreenProps> = ({ navigation }
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={commonStyles.screenContainer} edges={['top']}>
       {/* Top Bar */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Khoảnh khắc Snap</Text>
+      <View style={commonStyles.screenHeader}>
+        <Text style={typography.h3}>Khoảnh khắc Snap</Text>
         {imageUri && (
           <TouchableOpacity onPress={() => setImageUri(null)} style={styles.cancelBtn}>
             <X color={colors.textSecondary} size={22} />
@@ -140,7 +140,7 @@ export const SnapCameraScreen: React.FC<SnapCameraScreenProps> = ({ navigation }
         )}
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={commonStyles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Photo Box */}
         {imageUri ? (
           <View style={styles.imagePreviewContainer}>
@@ -170,7 +170,7 @@ export const SnapCameraScreen: React.FC<SnapCameraScreenProps> = ({ navigation }
 
         {/* Inputs (Only when photo is selected) */}
         {imageUri ? (
-          <View style={styles.formCard}>
+          <View style={commonStyles.card}>
             {/* Caption */}
             <Text style={styles.inputLabel}>Cảm nghĩ / Caption</Text>
             <TextInput
@@ -256,36 +256,8 @@ export const SnapCameraScreen: React.FC<SnapCameraScreenProps> = ({ navigation }
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    width: '100%',
-    maxWidth: 540,
-    alignSelf: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
   cancelBtn: {
     padding: 6,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-    width: '100%',
-    maxWidth: 540,
-    alignSelf: 'center',
   },
   pickerBox: {
     width: '100%',
@@ -355,13 +327,6 @@ const styles = StyleSheet.create({
   imagePreview: {
     width: '100%',
     height: '100%',
-  },
-  formCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   inputLabel: {
     color: colors.textSecondary,

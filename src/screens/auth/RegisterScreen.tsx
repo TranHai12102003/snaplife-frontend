@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Lock, Mail, User, ArrowLeft } from 'lucide-react-native';
-import { colors } from '../../constants/colors';
+import { colors, commonStyles, typography } from '../../theme';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { authApi } from '../../api/authApi';
@@ -81,7 +81,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={commonStyles.screenContainer}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardView}
@@ -90,18 +90,18 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <ArrowLeft color={colors.text} size={24} />
           </TouchableOpacity>
-          <Text style={styles.navTitle}>Tạo tài khoản</Text>
+          <Text style={typography.h3}>Tạo tài khoản</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={commonStyles.authScrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.card}>
+          <View style={commonStyles.card}>
             {errorMessage ? (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorBannerText}>{errorMessage}</Text>
+              <View style={commonStyles.errorBanner}>
+                <Text style={commonStyles.errorBannerText}>{errorMessage}</Text>
               </View>
             ) : null}
 
@@ -127,7 +127,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
               leftIcon={<User color={colors.textSecondary} size={20} />}
             />
 
-            <View style={styles.row}>
+            <View style={commonStyles.row}>
               <View style={{ flex: 1, marginRight: 8 }}>
                 <Input
                   label="Họ"
@@ -178,7 +178,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
               style={styles.submitButton}
             />
 
-            <View style={styles.footerRow}>
+            <View style={[commonStyles.row, styles.footerRow]}>
               <Text style={styles.footerText}>Đã có tài khoản?</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.loginLink}> Đăng nhập</Text>
@@ -192,10 +192,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   keyboardView: {
     flex: 1,
   },
@@ -212,47 +208,11 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 4,
   },
-  navTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  scrollContent: {
-    padding: 20,
-    width: '100%',
-    maxWidth: 460,
-    alignSelf: 'center',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  errorBanner: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    borderWidth: 1,
-    borderColor: colors.error,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorBannerText: {
-    color: colors.error,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  row: {
-    flexDirection: 'row',
-  },
   submitButton: {
     marginTop: 10,
   },
   footerRow: {
-    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
     marginTop: 20,
   },
   footerText: {
