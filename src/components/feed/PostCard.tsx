@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Animated,
+  GestureResponderEvent,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MapPin, MessageCircle, Heart } from 'lucide-react-native';
 import { PostDetailVModel, ReactionType } from '../../types/post.types';
 import { colors, commonStyles, typography } from '../../theme';
 import { formatCurrency, formatRelativeTime, getFullMediaUrl } from '../../utils/formatters';
+import { ReactionPickerBar } from './ReactionPickerBar';
 
 export interface PostCardProps {
   post: PostDetailVModel;
@@ -34,10 +37,47 @@ export const PostCard: React.FC<PostCardProps> = ({
   onReactionPress,
 }) => {
   const [showReactions, setShowReactions] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState(-1);
+  const hoveredIndexRef = useRef(-1);
+  const isHolding = useRef(false);
+  const isBarOpen = useRef(false);
+  const startTouch = useRef({ x: 0, y: 0 });
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const barLayout = useRef<{ pageX: number; pageY: number; width: number; height: number } | null>(null);
+
+  // Button catch/pop animation
+  const buttonScale = useRef(new Animated.Value(1)).current;
+
   const mediaUrl = post.Medias?.[0]?.FileUrl ? getFullMediaUrl(post.Medias[0].FileUrl) : null;
   const authorAvatar = post.Author?.AvatarUrl ? getFullMediaUrl(post.Author.AvatarUrl) : null;
 
   const currentEmoji = REACTION_EMOJIS.find((r) => r.type === post.UserReaction);
+
+  const triggerButtonPop = () => {
+    Animated.sequence([
+      Animated.timing(buttonScale, { toValue: 0.72, duration: 70, useNativeDriver: true }),
+      Animated.spring(buttonScale, { toValue: 1.35, friction: 3, tension: 160, useNativeDriver: true }),
+      Animated.spring(buttonScale, { toValue: 1.0, friction: 5, useNativeDriver: true }),
+    ]).start();
+  };
+
+  const openBar = () => {
+    setShowReactions(true);
+    isBarOpen.current = true;
+  };
+
+  const closeBar = () => {
+    setShowReactions(false);
+    isBarOpen.current = false;
+    setHoveredIndex(-1);
+    hoveredIndexRef.current = -1;
+  };
+
+  const handleSelectReaction = (type: ReactionType) => {
+    closeBar();
+    onReact(post.Id, type);
+    triggerButtonPop();
+  };
 
   const handlePressReact = () => {
     if (post.UserReaction) {
@@ -46,6 +86,90 @@ export const PostCard: React.FC<PostCardProps> = ({
     } else {
       // Mặc định thả Yêu thích (❤️)
       onReact(post.Id, ReactionType.Like);
+    }
+  };
+
+  const handleTouchStart = (e: GestureResponderEvent) => {
+    isHolding.current = true;
+    startTouch.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
+
+    if (isBarOpen.current) return;
+
+    longPressTimer.current = setTimeout(() => {
+      if (isHolding.current) {
+        openBar();
+      }
+    }, 220);
+  };
+
+  const handleTouchMove = (e: GestureResponderEvent) => {
+    const { pageX, pageY } = e.nativeEvent;
+
+    if (!isBarOpen.current) {
+      const dx = Math.abs(pageX - startTouch.current.x);
+      const dy = Math.abs(pageY - startTouch.current.y);
+      if (dy > 10 || dx > 12) {
+        if (longPressTimer.current) clearTimeout(longPressTimer.current);
+        isHolding.current = false;
+      }
+      return;
+    }
+
+    // When bar is open, determine which emoji is hovered based on layout
+    const layout = barLayout.current || {
+      pageX: Math.max(8, startTouch.current.x - 40),
+      pageY: startTouch.current.y - 70,
+      width: 260,
+      height: 50,
+    };
+
+    const isNearY = pageY >= layout.pageY - 50 && pageY <= layout.pageY + layout.height + 50;
+
+    if (isNearY) {
+      const relativeX = pageX - layout.pageX;
+      const slotW = layout.width / REACTION_EMOJIS.length;
+      const index = Math.floor(relativeX / slotW);
+
+      if (index >= 0 && index < REACTION_EMOJIS.length) {
+        if (hoveredIndexRef.current !== index) {
+          hoveredIndexRef.current = index;
+          setHoveredIndex(index);
+        }
+        return;
+      }
+    }
+
+    if (hoveredIndexRef.current !== -1) {
+      hoveredIndexRef.current = -1;
+      setHoveredIndex(-1);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    isHolding.current = false;
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+
+    if (!isBarOpen.current) {
+      // Single tap: default Like or unreact
+      handlePressReact();
+      triggerButtonPop();
+    } else {
+      if (hoveredIndexRef.current !== -1) {
+        const selectedType = REACTION_EMOJIS[hoveredIndexRef.current].type;
+        handleSelectReaction(selectedType);
+      } else {
+        // Finger lifted without selecting an emoji: keep bar open for direct tap
+        setHoveredIndex(-1);
+        hoveredIndexRef.current = -1;
+      }
+    }
+  };
+
+  const handleTouchCancel = () => {
+    isHolding.current = false;
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    if (isBarOpen.current) {
+      closeBar();
     }
   };
 
@@ -144,47 +268,42 @@ export const PostCard: React.FC<PostCardProps> = ({
         </View>
       ) : null}
 
-      {/* Quick Reaction Bar */}
-      {showReactions ? (
-        <View style={styles.emojiPicker}>
-          {REACTION_EMOJIS.map((r) => {
-            const isSelected = post.UserReaction === r.type;
-            return (
-              <TouchableOpacity
-                key={r.type}
-                style={[styles.emojiButton, isSelected && styles.emojiButtonActive]}
-                onPress={() => {
-                  onReact(post.Id, r.type);
-                  setShowReactions(false);
-                }}
-                activeOpacity={0.6}
-              >
-                <Text style={styles.emojiText}>{r.emoji}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      ) : null}
-
       {/* Footer Actions */}
       <View style={styles.footer}>
+        {/* Floating Quick Reaction Picker Bar */}
+        <ReactionPickerBar
+          visible={showReactions}
+          hoveredIndex={hoveredIndex}
+          postReaction={post.UserReaction}
+          onSelectEmoji={handleSelectReaction}
+          onClose={closeBar}
+          onLayoutBar={(layout) => {
+            barLayout.current = layout;
+          }}
+        />
+
         <View style={styles.footerLeft}>
-          {/* User Reaction Toggle Button (Single tap to toggle, Long press to open picker) */}
-          <TouchableOpacity
+          {/* User Reaction Button with gesture drag support */}
+          <View
             style={styles.actionBtn}
-            onPress={handlePressReact}
-            onLongPress={() => setShowReactions(!showReactions)}
-            delayLongPress={200}
-            activeOpacity={0.7}
+            onStartShouldSetResponder={() => true}
+            onMoveShouldSetResponder={() => true}
+            onResponderTerminationRequest={() => !isBarOpen.current}
+            onResponderGrant={handleTouchStart}
+            onResponderMove={handleTouchMove}
+            onResponderRelease={handleTouchEnd}
+            onResponderTerminate={handleTouchCancel}
           >
-            {currentEmoji ? (
-              <View style={styles.activeEmojiBadge}>
-                <Text style={styles.activeEmojiText}>{currentEmoji.emoji}</Text>
-              </View>
-            ) : (
-              <Heart color={colors.text} size={22} />
-            )}
-          </TouchableOpacity>
+            <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+              {currentEmoji ? (
+                <View style={styles.activeEmojiBadge}>
+                  <Text style={styles.activeEmojiText}>{currentEmoji.emoji}</Text>
+                </View>
+              ) : (
+                <Heart color={colors.text} size={22} />
+              )}
+            </Animated.View>
+          </View>
 
           {/* Social Overlapping Badges & Like Count */}
           <TouchableOpacity
@@ -239,7 +358,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     marginBottom: 20,
-    overflow: 'hidden',
+    overflow: 'visible',
     padding: 0,
   },
   header: {
@@ -348,40 +467,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
-  emojiPicker: {
-    flexDirection: 'row',
-    backgroundColor: colors.surfaceLight,
-    marginHorizontal: 16,
-    marginTop: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 30,
-    justifyContent: 'space-around',
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  emojiButton: {
-    padding: 6,
-    borderRadius: 20,
-  },
-  emojiButtonActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    transform: [{ scale: 1.15 }],
-  },
-  emojiText: {
-    fontSize: 22,
-  },
   footer: {
+    position: 'relative',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    zIndex: 100,
   },
   footerLeft: {
     flexDirection: 'row',
@@ -391,7 +484,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 4,
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
   },
   activeEmojiBadge: {
     width: 26,
