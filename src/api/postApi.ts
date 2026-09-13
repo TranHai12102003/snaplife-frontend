@@ -4,6 +4,7 @@ import {
   PostCreateRequest,
   PostFilterParams,
   ReactionType,
+  ReactionUserItem,
 } from '../types/post.types';
 import { PaginationModel, ResponseResult } from '../types/common.types';
 
@@ -53,6 +54,11 @@ export const postApi = {
     const response = await apiClient.post<ResponseResult>(`/api/Reaction/React/${postId}`, {
       Type: reactionType,
     });
+    return response.data;
+  },
+
+  getPostReactions: async (postId: number): Promise<ReactionUserItem[]> => {
+    const response = await apiClient.get<ReactionUserItem[]>(`/api/Reaction/Post/${postId}`);
     return response.data;
   },
 };

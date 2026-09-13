@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, Sparkles } from 'lucide-react-native';
 import { PostCard } from '../../components/feed/PostCard';
+import { ReactionListModal } from '../../components/feed/ReactionListModal';
 import { postApi } from '../../api/postApi';
 import { PostDetailVModel, ReactionType } from '../../types/post.types';
 import { colors, commonStyles, typography } from '../../theme';
@@ -25,6 +26,7 @@ export const FeedScreen: React.FC<FeedScreenProps> = ({ navigation }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedReactionPostId, setSelectedReactionPostId] = useState<number | null>(null);
 
   const fetchFeed = async (pageNumber: number = 1, refresh: boolean = false) => {
     try {
@@ -61,11 +63,29 @@ export const FeedScreen: React.FC<FeedScreenProps> = ({ navigation }) => {
       setPosts((prev) =>
         prev.map((p) => {
           if (p.Id === postId) {
+            const isUnreacting = p.UserReaction === reactionType;
             const wasReacted = !!p.UserReaction;
+
+            let updatedTopReactions = [...(p.TopReactions || [])];
+            if (isUnreacting) {
+              if (p.LikeCount <= 1) {
+                updatedTopReactions = [];
+              }
+            } else {
+              if (!updatedTopReactions.includes(reactionType)) {
+                updatedTopReactions = [reactionType, ...updatedTopReactions].slice(0, 3);
+              }
+            }
+
             return {
               ...p,
-              UserReaction: reactionType,
-              LikeCount: wasReacted ? p.LikeCount : p.LikeCount + 1,
+              UserReaction: isUnreacting ? null : reactionType,
+              LikeCount: isUnreacting
+                ? Math.max(0, p.LikeCount - 1)
+                : wasReacted
+                ? p.LikeCount
+                : p.LikeCount + 1,
+              TopReactions: updatedTopReactions,
             };
           }
           return p;
@@ -123,7 +143,11 @@ export const FeedScreen: React.FC<FeedScreenProps> = ({ navigation }) => {
           data={posts}
           keyExtractor={(item) => item.Id.toString()}
           renderItem={({ item }) => (
-            <PostCard post={item} onReact={handleReact} />
+            <PostCard
+              post={item}
+              onReact={handleReact}
+              onReactionPress={(id) => setSelectedReactionPostId(id)}
+            />
           )}
           contentContainerStyle={commonStyles.scrollContent}
           refreshControl={
@@ -137,6 +161,13 @@ export const FeedScreen: React.FC<FeedScreenProps> = ({ navigation }) => {
           ListEmptyComponent={renderEmpty}
         />
       )}
+
+      {/* Reaction List Modal */}
+      <ReactionListModal
+        visible={selectedReactionPostId !== null}
+        postId={selectedReactionPostId}
+        onClose={() => setSelectedReactionPostId(null)}
+      />
     </SafeAreaView>
   );
 };

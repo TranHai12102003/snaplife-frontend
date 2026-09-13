@@ -11,25 +11,63 @@ import { PostDetailVModel, ReactionType } from '../../types/post.types';
 import { colors, commonStyles, typography } from '../../theme';
 import { formatCurrency, formatRelativeTime, getFullMediaUrl } from '../../utils/formatters';
 
-interface PostCardProps {
+export interface PostCardProps {
   post: PostDetailVModel;
   onReact: (postId: number, reactionType: ReactionType) => void;
   onCommentPress?: (postId: number) => void;
+  onReactionPress?: (postId: number) => void;
 }
 
-const REACTION_EMOJIS: { type: ReactionType; emoji: string }[] = [
-  { type: ReactionType.Like, emoji: '❤️' },
-  { type: ReactionType.Haha, emoji: '😂' },
-  { type: ReactionType.Love, emoji: '🤤' }, // Food craving
-  { type: ReactionType.Wow, emoji: '🔥' },
-  { type: ReactionType.Sad, emoji: '😮' },
-  { type: ReactionType.Angry, emoji: '😢' },
+export const REACTION_EMOJIS: { type: ReactionType; emoji: string; label: string }[] = [
+  { type: ReactionType.Like, emoji: '❤️', label: 'Yêu thích' },
+  { type: ReactionType.Haha, emoji: '😂', label: 'Haha' },
+  { type: ReactionType.Love, emoji: '🤤', label: 'Thèm quá' },
+  { type: ReactionType.Wow, emoji: '🔥', label: 'Tuyệt đỉnh' },
+  { type: ReactionType.Sad, emoji: '😮', label: 'Bất ngờ' },
+  { type: ReactionType.Angry, emoji: '😢', label: 'Buồn' },
 ];
 
-export const PostCard: React.FC<PostCardProps> = ({ post, onReact, onCommentPress }) => {
+export const PostCard: React.FC<PostCardProps> = ({
+  post,
+  onReact,
+  onCommentPress,
+  onReactionPress,
+}) => {
   const [showReactions, setShowReactions] = useState(false);
   const mediaUrl = post.Medias?.[0]?.FileUrl ? getFullMediaUrl(post.Medias[0].FileUrl) : null;
   const authorAvatar = post.Author?.AvatarUrl ? getFullMediaUrl(post.Author.AvatarUrl) : null;
+
+  const currentEmoji = REACTION_EMOJIS.find((r) => r.type === post.UserReaction);
+
+  const handlePressReact = () => {
+    if (post.UserReaction) {
+      // Bấm lại để hủy thả biểu cảm (Toggle off)
+      onReact(post.Id, post.UserReaction);
+    } else {
+      // Mặc định thả Yêu thích (❤️)
+      onReact(post.Id, ReactionType.Like);
+    }
+  };
+
+  const getDisplayReactions = (): string[] => {
+    const result: string[] = [];
+    if (post.TopReactions && post.TopReactions.length > 0) {
+      post.TopReactions.forEach((type) => {
+        const found = REACTION_EMOJIS.find((r) => r.type === type);
+        if (found && !result.includes(found.emoji)) {
+          result.push(found.emoji);
+        }
+      });
+    } else if (post.UserReaction) {
+      const found = REACTION_EMOJIS.find((r) => r.type === post.UserReaction);
+      if (found) result.push(found.emoji);
+    } else if (post.LikeCount > 0) {
+      result.push('❤️');
+    }
+    return result.slice(0, 3);
+  };
+
+  const displayReactions = getDisplayReactions();
 
   return (
     <View style={[commonStyles.card, styles.card]}>
@@ -109,39 +147,85 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onReact, onCommentPres
       {/* Quick Reaction Bar */}
       {showReactions ? (
         <View style={styles.emojiPicker}>
-          {REACTION_EMOJIS.map((r) => (
-            <TouchableOpacity
-              key={r.type}
-              style={styles.emojiButton}
-              onPress={() => {
-                onReact(post.Id, r.type);
-                setShowReactions(false);
-              }}
-            >
-              <Text style={styles.emojiText}>{r.emoji}</Text>
-            </TouchableOpacity>
-          ))}
+          {REACTION_EMOJIS.map((r) => {
+            const isSelected = post.UserReaction === r.type;
+            return (
+              <TouchableOpacity
+                key={r.type}
+                style={[styles.emojiButton, isSelected && styles.emojiButtonActive]}
+                onPress={() => {
+                  onReact(post.Id, r.type);
+                  setShowReactions(false);
+                }}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.emojiText}>{r.emoji}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       ) : null}
 
       {/* Footer Actions */}
       <View style={styles.footer}>
         <View style={styles.footerLeft}>
+          {/* User Reaction Toggle Button (Single tap to toggle, Long press to open picker) */}
           <TouchableOpacity
             style={styles.actionBtn}
-            onPress={() => setShowReactions(!showReactions)}
+            onPress={handlePressReact}
+            onLongPress={() => setShowReactions(!showReactions)}
+            delayLongPress={200}
+            activeOpacity={0.7}
           >
-            <Heart
-              color={post.UserReaction ? colors.secondary : colors.text}
-              fill={post.UserReaction ? colors.secondary : 'transparent'}
-              size={22}
-            />
-            <Text style={styles.actionCount}>{post.LikeCount}</Text>
+            {currentEmoji ? (
+              <View style={styles.activeEmojiBadge}>
+                <Text style={styles.activeEmojiText}>{currentEmoji.emoji}</Text>
+              </View>
+            ) : (
+              <Heart color={colors.text} size={22} />
+            )}
           </TouchableOpacity>
 
+          {/* Social Overlapping Badges & Like Count */}
           <TouchableOpacity
-            style={styles.actionBtn}
+            style={styles.reactionCountContainer}
+            onPress={() => onReactionPress && onReactionPress(post.Id)}
+            activeOpacity={post.LikeCount > 0 ? 0.6 : 1}
+            disabled={post.LikeCount === 0}
+          >
+            {displayReactions.length > 0 && post.LikeCount > 0 ? (
+              <View style={styles.reactionStack}>
+                {displayReactions.map((emoji, idx) => (
+                  <View
+                    key={idx}
+                    style={[
+                      styles.reactionBadge,
+                      {
+                        zIndex: 10 - idx,
+                        marginLeft: idx > 0 ? -6 : 0,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.reactionBadgeText}>{emoji}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+            <Text
+              style={[
+                styles.actionCount,
+                post.UserReaction ? styles.actionCountActive : null,
+              ]}
+            >
+              {post.LikeCount}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Comments Button */}
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.commentBtn]}
             onPress={() => onCommentPress && onCommentPress(post.Id)}
+            activeOpacity={0.7}
           >
             <MessageCircle color={colors.text} size={22} />
             <Text style={styles.actionCount}>{post.CommentCount}</Text>
@@ -268,16 +352,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.surfaceLight,
     marginHorizontal: 16,
-    marginTop: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    marginTop: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     borderRadius: 30,
     justifyContent: 'space-around',
     borderWidth: 1,
     borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   emojiButton: {
-    padding: 4,
+    padding: 6,
+    borderRadius: 20,
+  },
+  emojiButtonActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    transform: [{ scale: 1.15 }],
   },
   emojiText: {
     fontSize: 22,
@@ -296,13 +390,55 @@ const styles = StyleSheet.create({
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 20,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  activeEmojiBadge: {
+    width: 26,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeEmojiText: {
+    fontSize: 20,
+  },
+  reactionCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    marginRight: 16,
+  },
+  reactionStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 4,
+  },
+  reactionBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.surface,
+  },
+  reactionBadgeText: {
+    fontSize: 10,
+    lineHeight: 12,
   },
   actionCount: {
     color: colors.textSecondary,
     fontSize: 14,
     fontWeight: '600',
-    marginLeft: 6,
+    marginLeft: 4,
+  },
+  actionCountActive: {
+    color: colors.text,
+    fontWeight: '700',
+  },
+  commentBtn: {
+    marginLeft: 4,
   },
 });
-

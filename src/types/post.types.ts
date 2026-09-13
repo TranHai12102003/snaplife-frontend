@@ -60,6 +60,14 @@ export interface PostDetailVModel {
   ShareCount: number;
   IsOwner: boolean;
   UserReaction?: ReactionType | null;
+  TopReactions?: ReactionType[];
+}
+
+export interface ReactionUserItem {
+  Id: number;
+  Type: ReactionType;
+  CreatedDate?: string;
+  User: UserSummary;
 }
 
 export interface PostCreateRequest {
